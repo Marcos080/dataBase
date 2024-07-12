@@ -55,7 +55,6 @@ void createTables(Database &db) {
                                    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                                    "user_id INTEGER, "
                                    "game_id INTEGER, "
-                                   "purchase_date TEXT, "
                                    "price REAL, "
                                    "FOREIGN KEY(user_id) REFERENCES Users(id), "
                                    "FOREIGN KEY(game_id) REFERENCES Games(id));";
@@ -87,9 +86,9 @@ void insertGame(Database &db, const string &title, const string &genre) {
     }
 }
 
-void associateUserGame(Database &db, int user_id, int game_id) {
-    string query = "INSERT INTO Users_Games (user_id, game_id) "
-                   "VALUES (" + to_string(user_id) + ", " + to_string(game_id) + ");";
+void associateUserGame(Database &db, int user_id, int game_id, double price) {
+    string query = "INSERT INTO Users_Games (user_id, game_id, price) "
+                   "VALUES (" + to_string(user_id) + ", " + to_string(game_id) + ", " + to_string(price) + ");";
     if (db.execute(query)) {
         cout << "User associated with game successfully." << endl;
     } else {
@@ -136,7 +135,7 @@ void listGames(Database &db) {
 }
 
 void listUserGames(Database &db, int user_id) {
-    string query = "SELECT Users.name, Games.title, Users_Games.purchase_date, Users_Games.price "
+    string query = "SELECT Users.name, Games.title, Users_Games.price "
                    "FROM Users "
                    "JOIN Users_Games ON Users.id = Users_Games.user_id "
                    "JOIN Games ON Users_Games.game_id = Games.id "
@@ -148,10 +147,9 @@ void listUserGames(Database &db, int user_id) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             const unsigned char *username = sqlite3_column_text(stmt, 0);
             const unsigned char *gametitle = sqlite3_column_text(stmt, 1);
-            const unsigned char *purchase_date = sqlite3_column_text(stmt, 2);
-            double price = sqlite3_column_double(stmt, 3);
+            double price = sqlite3_column_double(stmt, 2);
             
-            cout << "User: " << username << ", Game: " << gametitle << ", Purchase Date: " << purchase_date
+            cout << "User: " << username << ", Game: " << gametitle
                  << ", Price: $" << fixed << setprecision(2) << price << endl;
         }
         cout << endl;
@@ -162,7 +160,7 @@ void listUserGames(Database &db, int user_id) {
 }
 
 void listGameUsers(Database &db, int game_id) {
-    string query = "SELECT Users.name, Games.title, Users_Games.purchase_date, Users_Games.price "
+    string query = "SELECT Users.name, Games.title, Users_Games.price "
                    "FROM Users "
                    "JOIN Users_Games ON Users.id = Users_Games.user_id "
                    "JOIN Games ON Users_Games.game_id = Games.id "
@@ -174,10 +172,9 @@ void listGameUsers(Database &db, int game_id) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             const unsigned char *username = sqlite3_column_text(stmt, 0);
             const unsigned char *gametitle = sqlite3_column_text(stmt, 1);
-            const unsigned char *purchase_date = sqlite3_column_text(stmt, 2);
-            double price = sqlite3_column_double(stmt, 3);
+            double price = sqlite3_column_double(stmt, 2);
             
-            cout << "User: " << username << ", Game: " << gametitle << ", Purchase Date: " << purchase_date
+            cout << "User: " << username << ", Game: " << gametitle
                  << ", Price: $" << fixed << setprecision(2) << price << endl;
         }
         cout << endl;
@@ -228,14 +225,15 @@ int main() {
             }
             case 3: {
                 int user_id, game_id;
-                string purchase_date;
-                float price;
+                double price;
                 cout << "Enter User ID: ";
                 cin >> user_id;
                 cout << "Enter Game ID: ";
                 cin >> game_id;
+                cout << "Enter Price: ";
+                cin >> price;
                 cin.ignore();
-                associateUserGame(db, user_id, game_id);
+                associateUserGame(db, user_id, game_id, price);
                 break;
             }
             case 4:
